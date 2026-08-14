@@ -2,21 +2,30 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import config from "./config/mail.js";
+import dns from "dns";
 
 import contactRoutes from "./routes/ContactRoute.js";
 
 dotenv.config();
+
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+const mongoUri = process.env.MONGO_URI;
+
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(mongoUri)
   .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log(err));
+  .catch((err) => {
+    console.log("MongoDB connection failed:", err.message);
+  });
+app.get("/", (req, res) => {
+  res.send("Trionexa Backend is running successfully 🚀");
+});
 
 app.use("/api/contact", contactRoutes);
 app.use("/contact", contactRoutes);
