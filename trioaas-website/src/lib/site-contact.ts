@@ -6,13 +6,13 @@ export const CONTACT_API_URL = _envUrl
   ? _envUrl.includes("/api")
     ? _envUrl.replace(/\/$/, "")
     : _envUrl.replace(/\/$/, "") + "/api/contact"
-  : "http://localhost:5000/api/contact";
+  : "https://trionexa-2.onrender.com/api/contact";
 
 export type ContactForm = {
   name: string;
-  contact: string;
+  phone: string;
   email: string;
-  city: string;
+  address: string;
   message: string;
 };
 
