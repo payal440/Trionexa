@@ -4,6 +4,22 @@ import transporter from "../config/mail.js";
 export const sendMessage = async (req, res) => {
   try {
     const { name, phone, email, address, message } = req.body;
+    console.log("1. contact request received:", req.body);
+
+    // Validate required fields
+    if (!name || !email || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, Email, and Message are required fields",
+      });
+    }
+
+    if (!email.includes("@")) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format",
+      });
+    }
 
     // Save to MongoDB
     const contact = await Contact.create({
@@ -13,6 +29,7 @@ export const sendMessage = async (req, res) => {
       address,
       message,
     });
+    console.log("2. contact saved to MongoDB:", contact);
 
     // Send email to company
     await transporter.sendMail({
@@ -29,6 +46,7 @@ export const sendMessage = async (req, res) => {
         <p><strong>Message:</strong> ${message}</p>
       `,
     });
+    console.log("3. email sent to company:", process.env.EMAIL_USER);
 
     // Send thank you email to customer
     await transporter.sendMail({
@@ -50,6 +68,7 @@ export const sendMessage = async (req, res) => {
         <b>TrioAAS Infotech</b>
       `,
     });
+    console.log("4. thank you email sent to customer:", email);
 
     res.status(201).json({
       success: true,
@@ -57,11 +76,26 @@ export const sendMessage = async (req, res) => {
       data: contact,
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error in sendMessage:", error);
 
-    res.status(500).json({
+    let statusCode = 500;
+    let message = "Failed to process request";
+
+    if (error.message.includes("SMTP")) {
+      statusCode = 503;
+      message = "Email service unavailable - check SMTP configuration";
+    } else if (error.message.includes("MongoDB") || error.message.includes("connection")) {
+      statusCode = 503;
+      message = "Database connection failed";
+    } else if (error.name === "ValidationError") {
+      statusCode = 400;
+      message = `Validation Error: ${error.message}`;
+    }
+
+    res.status(statusCode).json({
       success: false,
-      message: error.message,
+      message: message,
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
