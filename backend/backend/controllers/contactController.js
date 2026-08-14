@@ -29,10 +29,11 @@ export const sendMessage = async (req, res) => {
       address,
       message,
     });
-    console.log("2. contact saved to MongoDB:", contact);
+    console.log("2. ✅ contact saved to MongoDB:", contact._id);
 
     // Send email to company
-    await transporter.sendMail({
+    console.log("3. 📧 Sending inquiry email to company...");
+    const companyEmailResult = await transporter.sendMail({
       from: `"TrioAAS Website" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
       subject: "📩 New Contact Form Submission",
@@ -46,10 +47,11 @@ export const sendMessage = async (req, res) => {
         <p><strong>Message:</strong> ${message}</p>
       `,
     });
-    console.log("3. email sent to company:", process.env.EMAIL_USER);
+    console.log("3. ✅ inquiry email sent to company");
 
     // Send thank you email to customer
-    await transporter.sendMail({
+    console.log("4. 📧 Sending thank you email to customer...");
+    const customerEmailResult = await transporter.sendMail({
       from: `"TrioAAS Infotech" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Thank You For Contacting TrioAAS",
@@ -68,7 +70,7 @@ export const sendMessage = async (req, res) => {
         <b>TrioAAS Infotech</b>
       `,
     });
-    console.log("4. thank you email sent to customer:", email);
+    console.log("4. ✅ thank you email sent to customer");
 
     res.status(201).json({
       success: true,
@@ -77,25 +79,30 @@ export const sendMessage = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error in sendMessage:", error);
+    console.error("Error Stack:", error.stack);
 
     let statusCode = 500;
-    let message = "Failed to process request";
+    let message = error.message || "Failed to process request";
 
+    // More specific error detection
     if (error.message.includes("SMTP")) {
       statusCode = 503;
-      message = "Email service unavailable - check SMTP configuration";
+      message = "SMTP Error: " + error.message;
     } else if (error.message.includes("MongoDB") || error.message.includes("connection")) {
       statusCode = 503;
-      message = "Database connection failed";
+      message = "Database Error: " + error.message;
+    } else if (error.message.includes("ENOTFOUND") || error.message.includes("ECONNREFUSED")) {
+      statusCode = 503;
+      message = "Connection Error: " + error.message;
     } else if (error.name === "ValidationError") {
       statusCode = 400;
-      message = `Validation Error: ${error.message}`;
+      message = "Validation Error: " + error.message;
     }
 
     res.status(statusCode).json({
       success: false,
       message: message,
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      errorType: error.name,
     });
   }
 };
