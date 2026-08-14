@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 
 dotenv.config();
 
-// Create and export the transporter
+// Create and export the transporter with timeout settings
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT || 587),
@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 5000, // 5 seconds
+  socketTimeout: 5000,     // 5 seconds
+  greetingTimeout: 3000,   // 3 seconds
 });
 
 // Test email configuration
@@ -62,8 +65,8 @@ async function testEmailConnection() {
   }
 }
 
-// Test email configuration on startup
-testEmailConnection();
+// Uncomment to test email configuration on startup
+// testEmailConnection();
 
 export { testEmailConnection };
 export default transporter;

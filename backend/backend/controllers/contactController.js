@@ -21,7 +21,7 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // Save to MongoDB
+    // Save to MongoDB FIRST
     const contact = await Contact.create({
       name,
       phone,
@@ -31,52 +31,20 @@ export const sendMessage = async (req, res) => {
     });
     console.log("2. ✅ contact saved to MongoDB:", contact._id);
 
-    // Send email to company
-    console.log("3. 📧 Sending inquiry email to company...");
-    const companyEmailResult = await transporter.sendMail({
-      from: `"TrioAAS Website" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
-      subject: "📩 New Contact Form Submission",
-      html: `
-        <h2>New Contact Inquiry</h2>
-
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-        <p><strong>Address:</strong> ${address || 'Not provided'}</p>
-        <p><strong>Message:</strong> ${message}</p>
-      `,
-    });
-    console.log("3. ✅ inquiry email sent to company");
-
-    // Send thank you email to customer
-    console.log("4. 📧 Sending thank you email to customer...");
-    const customerEmailResult = await transporter.sendMail({
-      from: `"TrioAAS Infotech" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Thank You For Contacting TrioAAS",
-      html: `
-        <h2>Hello ${name},</h2>
-
-        <p>Thank you for contacting <b>TrioAAS Infotech</b>.</p>
-
-        <p>We have received your inquiry successfully.</p>
-
-        <p>Our team will contact you within <b>24 hours</b>.</p>
-
-        <br>
-
-        Regards,<br>
-        <b>TrioAAS Infotech</b>
-      `,
-    });
-    console.log("4. ✅ thank you email sent to customer");
-
+    // Return success immediately to user
     res.status(201).json({
       success: true,
       message: "Message Sent Successfully",
       data: contact,
     });
+
+    // Send emails asynchronously in the background (don't wait for them)
+    console.log("3. 📧 Starting background email sending...");
+    
+    sendEmailsAsync(name, phone, email, address, message).catch((err) => {
+      console.error("❌ Background email error:", err.message);
+    });
+
   } catch (error) {
     console.error("❌ Error in sendMessage:", error);
     console.error("Error Stack:", error.stack);
@@ -106,3 +74,51 @@ export const sendMessage = async (req, res) => {
     });
   }
 };
+
+// Async function to send emails in background
+async function sendEmailsAsync(name, phone, email, address, message) {
+  try {
+    // Send email to company
+    console.log("3. 📧 Sending inquiry email to company...");
+    await transporter.sendMail({
+      from: `"TrioAAS Website" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      subject: "📩 New Contact Form Submission",
+      html: `
+        <h2>New Contact Inquiry</h2>
+
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+        <p><strong>Address:</strong> ${address || 'Not provided'}</p>
+        <p><strong>Message:</strong> ${message}</p>
+      `,
+    });
+    console.log("3. ✅ inquiry email sent to company");
+
+    // Send thank you email to customer
+    console.log("4. 📧 Sending thank you email to customer...");
+    await transporter.sendMail({
+      from: `"TrioAAS Infotech" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Thank You For Contacting TrioAAS",
+      html: `
+        <h2>Hello ${name},</h2>
+
+        <p>Thank you for contacting <b>TrioAAS Infotech</b>.</p>
+
+        <p>We have received your inquiry successfully.</p>
+
+        <p>Our team will contact you within <b>24 hours</b>.</p>
+
+        <br>
+
+        Regards,<br>
+        <b>TrioAAS Infotech</b>
+      `,
+    });
+    console.log("4. ✅ thank you email sent to customer");
+  } catch (error) {
+    console.error("❌ Error in sendEmailsAsync:", error.message);
+  }
+}
