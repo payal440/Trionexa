@@ -64,7 +64,7 @@ async function testEmailConnection() {
 }
 
 // Uncomment the line below to test email configuration on startup
-// testEmailConnection();
+testEmailConnection();
 
 // Export the transporter for use in other files
 module.exports = transporter;
