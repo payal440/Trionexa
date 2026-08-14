@@ -10,9 +10,9 @@ export const CONTACT_API_URL = _envUrl
 
 export type ContactForm = {
   name: string;
-  contact: string;
+  phone: string;
   email: string;
-  city: string;
+  address: string;
   message: string;
 };
 
