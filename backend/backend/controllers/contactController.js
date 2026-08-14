@@ -1,5 +1,5 @@
 import Contact from "../model/contactModel.js";
-import transporter from "../config/mail.js";
+import EmailService from "../services/EmailServices.js";
 import { logEmail } from "../utils/emailLogger.js";
 
 export const sendMessage = async (req, res) => {
@@ -79,55 +79,22 @@ export const sendMessage = async (req, res) => {
 // Async function to send emails in background with retry logic
 async function sendEmailsAsync(name, phone, email, address, message) {
   const maxRetries = 2;
-  let retryCount = 0;
+  const userData = { name, phone, email, address, message };
 
-  const emailConfig = {
-    companyEmail: {
-      from: `"TrioAAS Website" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
-      subject: "📩 New Contact Form Submission",
-      html: `
-        <h2>New Contact Inquiry</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-        <p><strong>Address:</strong> ${address || 'Not provided'}</p>
-        <p><strong>Message:</strong> ${message}</p>
-      `,
-    },
-    customerEmail: {
-      from: `"TrioAAS Infotech" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Thank You For Contacting TrioAAS",
-      html: `
-        <h2>Hello ${name},</h2>
-        <p>Thank you for contacting <b>TrioAAS Infotech</b>.</p>
-        <p>We have received your inquiry successfully.</p>
-        <p>Our team will contact you within <b>24 hours</b>.</p>
-        <br>
-        Regards,<br>
-        <b>TrioAAS Infotech</b>
-      `,
-    },
-  };
-
-  async function sendWithRetry(emailType, emailData) {
+  async function sendWithRetry(emailType, emailFunction) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(`📧 [${emailType}] Attempt ${attempt}/${maxRetries}...`);
-        console.log(`📧 [${emailType}] To: ${emailData.to}`);
-        console.log(`📧 [${emailType}] From: ${emailData.from}`);
         
-        const result = await transporter.sendMail(emailData);
+        const result = await emailFunction();
         
         console.log(`✅ [${emailType}] Email sent successfully!`);
         console.log(`   MessageID: ${result.messageId}`);
-        console.log(`   Response: ${result.response}`);
         
         // Log successful email
         logEmail({
           type: emailType,
-          recipient: emailData.to,
+          recipient: emailType === 'COMPANY_EMAIL' ? process.env.EMAIL_USER : email,
           status: 'SUCCESS',
           messageId: result.messageId,
           attempt: attempt,
@@ -138,12 +105,11 @@ async function sendEmailsAsync(name, phone, email, address, message) {
         console.error(`❌ [${emailType}] Attempt ${attempt} failed!`);
         console.error(`   Error: ${error.message}`);
         console.error(`   Code: ${error.code}`);
-        console.error(`   To: ${emailData.to}`);
         
         // Log failed attempt
         logEmail({
           type: emailType,
-          recipient: emailData.to,
+          recipient: emailType === 'COMPANY_EMAIL' ? process.env.EMAIL_USER : email,
           status: 'FAILED',
           error: error.message,
           errorCode: error.code,
@@ -160,7 +126,7 @@ async function sendEmailsAsync(name, phone, email, address, message) {
     // Log final failure
     logEmail({
       type: emailType,
-      recipient: emailData.to,
+      recipient: emailType === 'COMPANY_EMAIL' ? process.env.EMAIL_USER : email,
       status: 'FINAL_FAILURE',
       attempt: maxRetries,
     });
@@ -172,13 +138,12 @@ async function sendEmailsAsync(name, phone, email, address, message) {
     console.log("\n========== EMAIL SENDING STARTED ==========");
     console.log(`Recipient: ${name} (${email})`);
     console.log(`Admin Email: ${process.env.EMAIL_USER}`);
-    console.log(`SMTP Host: ${process.env.SMTP_HOST}`);
     console.log("==========================================\n");
 
-    // Send both emails in parallel
+    // Send both emails in parallel using EmailService
     const [companyResult, customerResult] = await Promise.all([
-      sendWithRetry("COMPANY_EMAIL", emailConfig.companyEmail),
-      sendWithRetry("CUSTOMER_EMAIL", emailConfig.customerEmail),
+      sendWithRetry("COMPANY_EMAIL", () => EmailService.sendBusinessEmail(userData)),
+      sendWithRetry("CUSTOMER_EMAIL", () => EmailService.sendThankYouEmail(userData)),
     ]);
 
     console.log("\n========== EMAIL SENDING COMPLETED ==========");
@@ -193,6 +158,5 @@ async function sendEmailsAsync(name, phone, email, address, message) {
     console.error("\n❌ CRITICAL ERROR in sendEmailsAsync:", error);
     console.error("Error Message:", error.message);
     console.error("Error Code:", error.code);
-    console.error("Error Hostname:", error.hostname);
   }
 }
