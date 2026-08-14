@@ -1,13 +1,11 @@
-const transporter = require('../config/mail');
+import transporter from '../config/mail.js';
 
 class EmailService {
-  // Send email to business owner
   static async sendBusinessEmail(userData) {
     const { name, email, phone, subject, message } = userData;
-    
     const mailOptions = {
       from: `"Business Website" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // Send to yourself/business
+      to: process.env.EMAIL_USER,
       subject: `New Contact Form: ${subject}`,
       html: `
         <!DOCTYPE html>
@@ -66,16 +64,15 @@ class EmailService {
         Phone: ${phone || 'Not provided'}
         Subject: ${subject}
         Message: ${message}
-      `
+      `,
     };
 
     return await transporter.sendMail(mailOptions);
   }
 
-  // Send thank you email to user
   static async sendThankYouEmail(userData) {
     const { name, email } = userData;
-    
+
     const mailOptions = {
       from: `"Business Name" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -128,11 +125,11 @@ class EmailService {
         If you need immediate assistance, please call us at +1-800-XXX-XXXX.
 
         This is an automated response. Please do not reply to this email.
-      `
+      `,
     };
 
     return await transporter.sendMail(mailOptions);
   }
 }
 
-module.exports = EmailService;
+export default EmailService;
