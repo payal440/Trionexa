@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="logoTitle">
+  <title id="logoTitle">TrioAas logo</title>
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#122648" />
+      <stop offset="100%" stop-color="#0f74ff" />
+    </linearGradient>
+    <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.32" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="#0c1220" />
+  <rect x="40" y="40" width="176" height="176" rx="44" fill="#ffffff" />
+  <path d="M72 72h68v24h-32v104h-28V96H72V72Z" fill="url(#logoGradient)" />
+  <path d="M152 72 216 72 168 176h-24l8-32 32-72Z" fill="#0a60eb" />
+  <path d="M152 72 188 72 158 136 152 72Z" fill="url(#highlightGradient)" />
+  <path d="M84 80h48v12H84V80Z" fill="#ffffff" opacity="0.18" />
+  <path d="M160 82h26l-30 54h-18l22-44-0.5-10Z" fill="#ffffff" opacity="0.14" />
+</svg>
