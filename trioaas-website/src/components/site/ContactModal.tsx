@@ -4,7 +4,7 @@ import { submitContact, type ContactForm } from "@/lib/site-contact";
 
 type Props = { isOpen: boolean; onClose: () => void };
 
-const initialForm: ContactForm = { name: "", contact: "", email: "", city: "", message: "" };
+const initialForm: ContactForm = { name: "", phone: "", email: "", address: "", message: "" };
 
 export default function ContactModal({ isOpen, onClose }: Props) {
   const [form, setForm] = useState<ContactForm>(initialForm);
@@ -119,7 +119,7 @@ export default function ContactModal({ isOpen, onClose }: Props) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Phone">
                 <input
-                  type="text" name="contact" value={form.contact} onChange={handleChange}
+                  type="text" name="phone" value={form.phone} onChange={handleChange}
                   required pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number"
                   className={inputCls}
                 />
@@ -134,7 +134,7 @@ export default function ContactModal({ isOpen, onClose }: Props) {
             </div>
             <Field label="Address">
               <input
-                type="text" name="city" value={form.city} onChange={handleChange}
+                type="text" name="address" value={form.address} onChange={handleChange}
                 required title="Please enter a valid address"
                 className={inputCls}
               />
