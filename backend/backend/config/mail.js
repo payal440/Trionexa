@@ -3,7 +3,11 @@ import nodemailer from 'nodemailer';
 
 dotenv.config();
 
-// Create and export the transporter with timeout settings
+console.log('🔧 Initializing Email Configuration...');
+console.log(`📧 Email User: ${process.env.EMAIL_USER}`);
+console.log(`🌐 SMTP Host: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}`);
+
+// Create and export the transporter with optimized settings
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT || 587),
@@ -12,9 +16,25 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  connectionTimeout: 5000, // 5 seconds
-  socketTimeout: 5000,     // 5 seconds
-  greetingTimeout: 3000,   // 3 seconds
+  // Connection timing settings
+  connectionTimeout: 10000,  // 10 seconds (increased from 5)
+  socketTimeout: 10000,      // 10 seconds (increased from 5)
+  greetingTimeout: 5000,     // 5 seconds (increased from 3)
+  
+  // Connection pooling for better performance
+  pool: {
+    maxConnections: 5,
+    maxMessages: 100,
+    rateDelta: 1000,
+    rateLimit: 5,
+  },
+  
+  // Additional settings
+  logger: true,
+  debug: false,
+  tls: {
+    rejectUnauthorized: false  // Important for Gmail
+  }
 });
 
 // Test email configuration

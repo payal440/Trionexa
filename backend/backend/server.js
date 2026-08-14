@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import dns from "dns";
 
 import contactRoutes from "./routes/ContactRoute.js";
+import { testEmailConnection } from "./config/mail.js";
+import { getEmailLogs } from "./utils/emailLogger.js";
 
 dotenv.config();
 
@@ -33,6 +35,38 @@ app.get("/api/health", (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || "development",
   });
+});
+
+app.get("/api/test-email", async (req, res) => {
+  try {
+    console.log("🧪 Testing Email Configuration...");
+    await testEmailConnection();
+    res.status(200).json({
+      success: true,
+      message: "Email test completed. Check server logs for details.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Email test failed: " + error.message,
+    });
+  }
+});
+
+app.get("/api/email-logs", (req, res) => {
+  try {
+    const logs = getEmailLogs();
+    res.status(200).json({
+      success: true,
+      count: logs.length,
+      logs: logs.slice(-20), // Last 20 logs
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch email logs: " + error.message,
+    });
+  }
 });
 
 app.use("/api/contact", contactRoutes);

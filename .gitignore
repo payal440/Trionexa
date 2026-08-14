@@ -6,3 +6,5 @@ dist/
 build/
 .next/
 .lovable/
+/logs/
+backend/logs/
