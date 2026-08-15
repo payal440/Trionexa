@@ -2,11 +2,12 @@ import transporter from '../config/mail.js';
 
 class EmailService {
   static async sendBusinessEmail(userData) {
+    const adminEmail = (process.env.EMAIL_USER || 'payalmalakar49@gmail.com').trim();
     const { name, email, phone, address, message } = userData;
-    
+
     const mailOptions = {
-      from: `"TrioAAS Website" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
+      from: `"TrioAAS Website" <${adminEmail}>`,
+      to: adminEmail,
       subject: '📩 New Contact Form Submission',
       html: `
         <!DOCTYPE html>
@@ -65,10 +66,15 @@ class EmailService {
 
   static async sendThankYouEmail(userData) {
     const { name, email } = userData;
+    const customerEmail = String(email || '').trim();
+
+    if (!customerEmail) {
+      throw new Error('Customer email is required to send the thank-you email.');
+    }
 
     const mailOptions = {
-      from: `"TrioAAS Infotech" <${process.env.EMAIL_USER}>`,
-      to: email,
+      from: `"TrioAAS Infotech" <${process.env.EMAIL_USER || 'payalmalakar49@gmail.com'}>`,
+      to: customerEmail,
       subject: 'Thank You For Contacting TrioAAS',
       html: `
         <!DOCTYPE html>

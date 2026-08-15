@@ -80,6 +80,7 @@ export const sendMessage = async (req, res) => {
 async function sendEmailsAsync(name, phone, email, address, message) {
   const maxRetries = 2;
   const userData = { name, phone, email, address, message };
+  const adminEmail = (process.env.EMAIL_USER || 'payalmalakar49@gmail.com').trim();
 
   async function sendWithRetry(emailType, emailFunction) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -94,7 +95,7 @@ async function sendEmailsAsync(name, phone, email, address, message) {
         // Log successful email
         logEmail({
           type: emailType,
-          recipient: emailType === 'COMPANY_EMAIL' ? process.env.EMAIL_USER : email,
+          recipient: emailType === 'COMPANY_EMAIL' ? adminEmail : email,
           status: 'SUCCESS',
           messageId: result.messageId,
           attempt: attempt,
@@ -109,7 +110,7 @@ async function sendEmailsAsync(name, phone, email, address, message) {
         // Log failed attempt
         logEmail({
           type: emailType,
-          recipient: emailType === 'COMPANY_EMAIL' ? process.env.EMAIL_USER : email,
+          recipient: emailType === 'COMPANY_EMAIL' ? adminEmail : email,
           status: 'FAILED',
           error: error.message,
           errorCode: error.code,
@@ -126,7 +127,7 @@ async function sendEmailsAsync(name, phone, email, address, message) {
     // Log final failure
     logEmail({
       type: emailType,
-      recipient: emailType === 'COMPANY_EMAIL' ? process.env.EMAIL_USER : email,
+      recipient: emailType === 'COMPANY_EMAIL' ? adminEmail : email,
       status: 'FINAL_FAILURE',
       attempt: maxRetries,
     });
@@ -137,7 +138,7 @@ async function sendEmailsAsync(name, phone, email, address, message) {
   try {
     console.log("\n========== EMAIL SENDING STARTED ==========");
     console.log(`Recipient: ${name} (${email})`);
-    console.log(`Admin Email: ${process.env.EMAIL_USER}`);
+    console.log(`Admin Email: ${adminEmail}`);
     console.log("==========================================\n");
 
     // Send both emails in parallel using EmailService
