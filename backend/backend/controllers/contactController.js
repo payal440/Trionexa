@@ -38,7 +38,9 @@ export const sendMessage = async (req, res) => {
       message: "Message Sent Successfully",
       data: contact,
     });
-
+    sendEmailsAsync(name, phone, email, address, message).catch((err) => {
+      console.error("❌ Background email error:", err.message);
+    })
     // Send emails asynchronously in the background (don't wait for them)
     console.log("3. 📧 Starting background email sending...");
     

@@ -8,12 +8,13 @@ const requiredEnv = {
   SMTP_PORT: process.env.SMTP_PORT,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
+  
 };
 
 const missingEnv = Object.entries(requiredEnv)
   .filter(([, value]) => !value || !String(value).trim())
   .map(([key]) => key);
-
+  console.log(`[MAIL] Required email environment variables: ${Object.keys(requiredEnv).join(', ')}`);
 if (missingEnv.length) {
   console.warn(`[MAIL] Missing email environment variables: ${missingEnv.join(', ')}`);
 }
@@ -44,6 +45,8 @@ export const emailConfigStatus = {
   missingEnv,
   smtpHost: process.env.SMTP_HOST || 'not-set',
   emailUser: process.env.EMAIL_USER || 'not-set',
+  smtpPort: process.env.SMTP_PORT || 'not-set',
+  smtpSecure: process.env.SMTP_SECURE || 'not-set',
 };
 
 export default transporter;

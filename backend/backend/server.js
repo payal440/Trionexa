@@ -64,7 +64,10 @@ app.get("/api/test-email", async (req, res) => {
       });
     }
 
-    await transporter.verify();
+    await transporter.verify()
+    .then(() => {
+      console.log("SMTP configuration is valid. Ready to send emails.");
+    })
 
     const result = await transporter.sendMail({
       from: `"TrioAAS Website" <${emailUser}>`,
