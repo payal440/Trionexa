@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import dns from "dns";
 
 import contactRoutes from "./routes/ContactRoute.js";
+import transporter, { emailConfigStatus } from "./config/mail.js";
 import { getEmailLogs } from "./utils/emailLogger.js";
 
 dotenv.config();
@@ -48,6 +49,44 @@ app.get("/api/email-logs", (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch email logs: " + error.message,
+    });
+  }
+});
+
+app.get("/api/test-email", async (req, res) => {
+  try {
+    const emailUser = String(process.env.EMAIL_USER || '').trim();
+    if (!emailUser) {
+      return res.status(500).json({
+        success: false,
+        message: "EMAIL_USER is not configured.",
+        config: emailConfigStatus,
+      });
+    }
+
+    await transporter.verify();
+
+    const result = await transporter.sendMail({
+      from: `"TrioAAS Website" <${emailUser}>`,
+      to: emailUser,
+      subject: "SMTP verification email",
+      text: "This is a backend SMTP verification email. If you received it, the mail service is working.",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "SMTP test email sent successfully.",
+      messageId: result.messageId,
+      response: result.response,
+      config: emailConfigStatus,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "SMTP verification failed.",
+      error: error.message,
+      code: error.code,
+      config: emailConfigStatus,
     });
   }
 });

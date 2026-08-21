@@ -3,6 +3,21 @@ import nodemailer from 'nodemailer';
 
 dotenv.config();
 
+const requiredEnv = {
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT,
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_PASS: process.env.EMAIL_PASS,
+};
+
+const missingEnv = Object.entries(requiredEnv)
+  .filter(([, value]) => !value || !String(value).trim())
+  .map(([key]) => key);
+
+if (missingEnv.length) {
+  console.warn(`[MAIL] Missing email environment variables: ${missingEnv.join(', ')}`);
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT || 587),
@@ -24,5 +39,11 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false,
   },
 });
+
+export const emailConfigStatus = {
+  missingEnv,
+  smtpHost: process.env.SMTP_HOST || 'not-set',
+  emailUser: process.env.EMAIL_USER || 'not-set',
+};
 
 export default transporter;
