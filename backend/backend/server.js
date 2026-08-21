@@ -8,6 +8,7 @@ import contactRoutes from "./routes/ContactRoute.js";
 import transporter, { emailConfigStatus } from "./config/mail.js";
 import { getEmailLogs } from "./utils/emailLogger.js";
 
+dns.setDefaultResultOrder("ipv4first");
 dotenv.config();
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
